@@ -1,14 +1,13 @@
 package com.doconaut.doclet;
 
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.Doclet;
-import com.sun.javadoc.FieldDoc;
-import com.sun.javadoc.RootDoc;
+import com.sun.javadoc.*;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Created by hannes on 12.06.14.
+ * A doclet that creates markdown javadoc
  * @author Hannes Dorfmann
  */
 public abstract class MarkdownDoclet extends Doclet{
@@ -18,7 +17,7 @@ public abstract class MarkdownDoclet extends Doclet{
      * {@link #linkToClass(com.sun.javadoc.ClassDoc, boolean)}
      */
     private static String[] NO_LINK_PREFIX = {
-            "java.lang"
+            "java."
     };
 
 
@@ -40,20 +39,128 @@ public abstract class MarkdownDoclet extends Doclet{
     }
 
 
-
+    /**
+     * Writes the
+     * @param c
+     * @throws FileNotFoundException
+     * @throws UnsupportedEncodingException
+     */
     private static void writeClass(ClassDoc c) throws FileNotFoundException, UnsupportedEncodingException {
 
         OutputStream out = System.out;
         PrintWriter builder = new PrintWriter(out);
 
+        // Write the headers
         writeClassHeader(c, builder);
+
+
+        // Write the fields
+        writeFields(c, builder);
+
+
+        // constructors
+        writeConstructors(c, builder);
+
+        // methods
+        writeMethods(c, builder);
+
+
         builder.flush();
         builder.close();
 
     }
 
     /**
+     * Write the constructors
+     * @param c
+     * @param str
+     */
+    private static void writeConstructors(ClassDoc c, PrintWriter str) {
+
+        writeHeadline(str, "Constructors", 2);
+
+        ConstructorDoc[] constructors = c.constructors();
+
+        for (ConstructorDoc con : constructors){
+            writeMethod(con, str);
+        }
+
+    }
+
+    /**
+     * Write the methods
+     * @param c
+     * @param str
+     */
+    private static void writeMethods(ClassDoc c, PrintWriter str){
+
+        if (c.methods().length == 0){
+            return;
+        }
+
+        writeHeadline(str, "Methods", 2);
+
+        MethodDoc[] methods = c.methods();
+
+        for (MethodDoc m : methods){
+            writeMethod(m, str);
+        }
+    }
+
+
+    private static void writeMethod(ExecutableMemberDoc m, PrintWriter str){
+
+        str.append("| ");
+
+        // write method modifiers
+        String modifiers = getMethodModifiers(m);
+
+        if (isNotEmpty(modifiers)){
+            str.append(modifiers);
+            str.append(" ");
+        }
+
+
+        str.append("| ");
+
+        // write name and parameters
+        str.append(m.name());
+        str.append("(");
+
+        Parameter[] par = m.parameters();
+        int i = 0;
+        for (Parameter p : par){
+
+           if (p.type().isPrimitive()){
+               str.append(p.type().simpleTypeName());
+           } else {
+               str.append(linkToClass(p.type().asClassDoc(), false));
+           }
+
+            str.append(" ");
+            str.append(p.name());
+
+            if (i < par.length -1 ){
+                str.append(", ");
+            }
+
+            i++;
+        }
+
+        str.append(")");
+
+        if (isNotEmpty(m.commentText())){
+            newLine(str, false);
+            writeJavaDocResolved(m.commentText(), str);
+        }
+
+        str.append("\n");
+
+    }
+
+    /**
      * Write the headers
+     *
      * @param c
      * @param str
      */
@@ -72,32 +179,74 @@ public abstract class MarkdownDoclet extends Doclet{
         writeInheritance(c, str);
         newLine(str);
 
+        // interfaces
+        writeInterfaces(c, str);
+        newLine(str);
+
+        // generic typ parameters
+        writeTypParameters(c, str);
+        newLine(str);
+
         // Write the comment
         writeClassOverview(c, str);
         newLine(str);
 
-
-        writeFields(c, str);
     }
-
 
     /**
-     * Writes the javadoc comments with already resolving the javadoc links
-     * @param comment
+     * Write the generic type parameters
+     *
+     * @param c
      * @param str
      */
-    private static PrintWriter writeComments(String comment, PrintWriter str){
+    private static void writeTypParameters(ClassDoc c, PrintWriter str) {
 
-        if (comment == null || comment.length() == 0){
-            return str;
+        // TODO does not work
+
+        TypeVariable [] vars = c.typeParameters();
+        if (vars.length == 0){
+            return;
         }
 
-        comment = resolveJavaDocLink(comment);
+        writeHeadline(str, "Generic Type Parameters", 3);
 
-        str.append(comment);
+        for (TypeVariable v : vars){
 
-        return str;
+            str.append("** <").append(v.simpleTypeName()).append("> ** ");
+
+        }
+
     }
+
+    /**
+     * Writes the interfacese this class is implementing
+     * @param c
+     * @param str
+     */
+    private static void writeInterfaces(ClassDoc c, PrintWriter str) {
+
+
+        ClassDoc interfaces[] = c.interfaces();
+
+        if (interfaces.length == 0){
+            return;
+        }
+
+
+        writeHeadline(str, "Implements", 3);
+
+        for (int i = 0; i< interfaces.length; i++){
+            ClassDoc interf = interfaces[i];
+            str.append(linkToClass(interf, false));
+
+            if (i < interfaces.length -1 ) { // If its not the last one, add a " , "
+                str.append(" , ");
+            }
+        }
+    }
+
+
+
     /**
      * Write the fields
      * @param c
@@ -106,15 +255,62 @@ public abstract class MarkdownDoclet extends Doclet{
     private static void writeFields(ClassDoc c, PrintWriter str) {
 
         FieldDoc [] fields = c.fields();
-        if (fields.length > 0) {
-            writeHeadline(str, "Constants", 2);
+        if (fields.length == 0)
+            return;
 
+            ArrayList<FieldDoc> constans = new ArrayList<FieldDoc>();
+            ArrayList<FieldDoc> normals = new ArrayList<FieldDoc>();
+
+            // Distinguish between constants and normal fields
             for (FieldDoc f : fields) {
+
+                if (f.isFinal()) {
+                    constans.add(f);
+                } else {
+                    normals.add(f);
+                }
+            }
+
+            // Print constants
+            if (!constans.isEmpty()) {
+                writeHeadline(str, "Constants", 2);
+
+                for (FieldDoc f : constans) {
+
+                    str.append(f.type().simpleTypeName()).append("|").append(f.name()).append("|");
+                    writeJavaDocResolved(f.commentText(), str);
+                    if (f.constantValue() != null) {
+
+                        if (isNotEmpty(f.commentText())) {
+                            newLine(str, false);
+                        }
+
+                        str.append("Constant Value: ");
+                        str.append(f.constantValueExpression());
+                    }
+                    str.append("\n");
+                }
+            }
+
+
+        // Print normal fields
+        if (!constans.isEmpty()) {
+            writeHeadline(str, "Fields", 2);
+
+            for (FieldDoc f : normals) {
+
                 str.append(f.type().simpleTypeName()).append("|").append(f.name()).append("|");
-                writeComments(f.commentText(), str).append("\n");
+                writeJavaDocResolved(f.commentText(), str);
+                str.append("\n");
             }
         }
 
+
+    }
+
+
+    private static boolean isNotEmpty(String s){
+        return s != null && s.length() != 0;
     }
 
 
@@ -125,7 +321,7 @@ public abstract class MarkdownDoclet extends Doclet{
      */
     private static void writeClassOverview(ClassDoc c, PrintWriter str){
         writeHeadline(str, "Class Overview", 2);
-        writeComments(c.commentText(), str);
+        writeJavaDocResolved(c.commentText(), str);
     }
 
 
@@ -152,12 +348,70 @@ public abstract class MarkdownDoclet extends Doclet{
 
     }
 
+
     /**
-     * New line
+     * Get the modifiers of a method
+     *
+     * @param m
+     * @return
+     */
+    private static String getMethodModifiers(ExecutableMemberDoc m){
+
+        StringBuilder modi = new StringBuilder();
+
+        if (m.isPublic()){
+            modi.append("public ");
+        }
+
+
+        if (m.isProtected()){
+            modi.append("protected ");
+        }
+
+        if (m.isPrivate()){
+            modi.append("private ");
+        }
+
+        if (m.isStatic()){
+            modi.append("static ");
+        }
+
+        if (m.isFinal()){
+            modi.append("final ");
+        }
+
+        if (m.isNative()){
+            modi.append("native ");
+        }
+
+        if(m.isSynchronized()){
+            modi.append("synchronized ");
+        }
+
+
+
+        return modi.toString().trim();
+
+    }
+
+    /**
+     * Prints a new line with additional \n
      * @param str
      */
     private static void newLine(PrintWriter str){
-        str.append("<br />\n");
+        newLine(str, true);
+    }
+
+    /**
+     * New line
+     * @param str
+     * @param bn Add also the backslash n (\n) char
+     */
+    private static void newLine(PrintWriter str, boolean bn){
+        str.append(" <br /> ");
+        if (bn){
+            str.append("\n");
+        }
     }
 
     /**
@@ -170,19 +424,38 @@ public abstract class MarkdownDoclet extends Doclet{
         ClassDoc superClass = c.superclass();
         String intention = "&nbsp;&nbsp;&nbsp;";
 
-        int intentLevel = 0;
-        while (superClass != null){
+        List<ClassDoc> superHierarchy = new ArrayList<ClassDoc>();
 
-            for (int i =0; i< intentLevel; i++){
+        // Build Hierarchy
+        while (superClass != null){
+            superHierarchy.add(superClass);
+            superClass = superClass.superclass();
+        }
+
+        // Print hierarchy in correct order
+        int intentLevel = 0;
+        for (int i = superHierarchy.size()-1; i>=0; i--, intentLevel++){
+
+            superClass = superHierarchy.get(i);
+
+            for (int j =0; j< intentLevel; j++){
                 str.append(intention);
             }
 
             str.append("<small>↳").append(linkToClass(superClass, true)).append("</small>");
             newLine(str);
 
-            superClass = superClass.superclass();
-            intentLevel++;
         }
+
+
+        // Print the class itself
+        for (int j =0; j< intentLevel; j++){
+            str.append(intention);
+        }
+
+        str.append("<small>↳").append(c.qualifiedName()).append("</small>");
+        newLine(str);
+
 
     }
 
@@ -227,6 +500,24 @@ public abstract class MarkdownDoclet extends Doclet{
         str.append(headline);
         str.append("\n");
 
+    }
+
+    /**
+     * Replaces javadoc things with markdown things
+     * @param textWithJavaDoc
+     * @return
+     */
+    private static PrintWriter writeJavaDocResolved(String textWithJavaDoc, PrintWriter str){
+
+        if (textWithJavaDoc == null || textWithJavaDoc.length() == 0){
+            return str;
+        }
+
+        textWithJavaDoc = resolveJavaDocLink(textWithJavaDoc);
+
+        str.append(textWithJavaDoc);
+
+        return str;
     }
 
     /**
