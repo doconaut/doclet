@@ -43,7 +43,7 @@ public class SampleClass<V> extends SampleSuperClass implements Serializable, Cl
     }
 
     public void doNothing(){
-        
+
     }
 
 }

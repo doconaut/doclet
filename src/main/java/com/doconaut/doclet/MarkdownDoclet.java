@@ -20,6 +20,11 @@ public abstract class MarkdownDoclet extends Doclet{
             "java."
     };
 
+    private static final String JAVADOC_TEMPLATE_PLACEHOLDER = "{{ javadoc }}";
+
+    private static final String TEMPLATE_PARAM = "-template";
+
+    private static File templatePage;
 
     public static boolean start(RootDoc rootDoc){
 
@@ -40,15 +45,99 @@ public abstract class MarkdownDoclet extends Doclet{
 
 
     /**
+     * Validate and read the
+     * @param options
+     * @param reporter
+     * @return
+     */
+    public static boolean validOptions(String options[][],
+                                       DocErrorReporter reporter) {
+        boolean foundTagOption = false;
+        for (int i = 0; i < options.length; i++) {
+            String[] opt = options[i];
+            if (opt[0].equals(TEMPLATE_PARAM)) {
+                if (foundTagOption) {
+                    reporter.printError("Only one "+TEMPLATE_PARAM+" option allowed.");
+                    return false;
+                } else {
+
+                    templatePage = new File(opt[1]);
+                    if (!templatePage.exists()){
+                        reporter.printError("The specified page templatePage does not exists, maybe the path to this templatePage is wrong");
+                        return false;
+                    }
+                    foundTagOption = true;
+                }
+            }
+        }
+
+
+       return true;
+    }
+
+    public static int optionLength(String option) {
+
+        if(option.equals(TEMPLATE_PARAM)) {
+            return 2;
+        }
+
+        return 0;
+    }
+
+    private static String readTemplateFile() throws IOException{
+        BufferedReader br = null;
+
+        StringBuilder builder = new StringBuilder();
+
+        try {
+
+            String sCurrentLine;
+
+            br = new BufferedReader(new FileReader(templatePage));
+
+            while ((sCurrentLine = br.readLine()) != null) {
+                builder.append(sCurrentLine);
+                builder.append("\n");
+            }
+
+            return builder.toString();
+
+
+        } finally {
+
+            if (br != null)
+                br.close();
+
+        }
+    }
+
+    /**
      * Writes the
      * @param c
      * @throws FileNotFoundException
      * @throws UnsupportedEncodingException
      */
-    private static void writeClass(ClassDoc c) throws FileNotFoundException, UnsupportedEncodingException {
+    private static void writeClass(ClassDoc c) throws IOException {
 
         OutputStream out = System.out;
         PrintWriter builder = new PrintWriter(out);
+
+        // Template things, if there is anything
+        String template = null;
+        String remainingTemplate = null;
+        if (templatePage!=null){
+            template = readTemplateFile();
+
+            int startIndex = template.indexOf(JAVADOC_TEMPLATE_PLACEHOLDER);
+            if (startIndex == -1){
+                throw new IOException("The template file does not contain the required placeholder with "+JAVADOC_TEMPLATE_PLACEHOLDER);
+            }
+
+            builder.append(template.substring(0, startIndex));
+
+            remainingTemplate = template.substring(startIndex+JAVADOC_TEMPLATE_PLACEHOLDER.length());
+
+        }
 
         // Write the headers
         writeClassHeader(c, builder);
@@ -65,8 +154,14 @@ public abstract class MarkdownDoclet extends Doclet{
         writeMethods(c, builder);
 
 
+        // Write the rest of the template (if there is any one)
+        if (isNotEmpty(remainingTemplate)){
+            builder.append(remainingTemplate);
+        }
+
         builder.flush();
         builder.close();
+
 
     }
 
