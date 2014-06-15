@@ -25,8 +25,10 @@ public class Section extends MarkdownElement {
         else
         {
             StringBuilder builder = new StringBuilder();
-            builder.append("* * *");
-            builder.append(newLine(false));
+            builder.append(newLine());
+            builder.append(newLine());
+            builder.append("<hr />");
+            builder.append(newLine());
             builder.append(newLine(false));
             builder.append("# ");
             builder.append(title);

@@ -135,9 +135,9 @@ public class OverviewSection extends Section {
 
 
         // Write the description
+        builder.append(newLine());
         builder.append(getJavaDocResolved(clazz.commentText()));
         builder.append(newLine());
-        builder.append("foo");
         builder.append(newLine());
 
 
@@ -147,11 +147,13 @@ public class OverviewSection extends Section {
 
         // Inheritance
         builder.append(newLine());
+        builder.append(newLine());
         builder.append(getInheritance());
 
         // implements interfaces
         String interf = getInterfaces();
         if (!StringUtils.isEmpty(interf)) {
+            builder.append(newLine());
             builder.append(newLine());
             builder.append(interf);
         }

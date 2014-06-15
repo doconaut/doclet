@@ -59,29 +59,18 @@ public class Method extends MarkdownElement implements Comparable<Method> {
 
     protected String getParametersForHeader(){
 
-        StringBuilder str = new StringBuilder();
+        String signature = method.flatSignature();
 
         Parameter[] par = method.parameters();
-        int i = 0;
         for (Parameter p : par){
 
-            if (p.type().isPrimitive()){
-                str.append(p.type().simpleTypeName());
-            } else {
-                str.append(linkToClass(p.type().asClassDoc(), false));
+            if (!p.type().isPrimitive()){
+                signature = signature.replace(p.name(), linkToClass(p.type().asClassDoc(), false));
             }
 
-            str.append(" ");
-            str.append(p.name());
-
-            if (i < par.length -1 ){
-                str.append(", ");
-            }
-
-            i++;
         }
 
-        return str.toString();
+        return signature;
     }
 
 
@@ -89,16 +78,13 @@ public class Method extends MarkdownElement implements Comparable<Method> {
         StringBuilder builder = new StringBuilder();
 
         builder.append("* ");
-        builder.append("**_");
 
         builder.append(getMethodModifiers());
-        builder.append(" ");
+        builder.append(" **_");
         builder.append(method.name());
-        builder.append("(");
+        builder.append("_** ");
         builder.append(getParametersForHeader());
-        builder.append(")");
 
-        builder.append("_**");
 
         return builder.toString();
     }
@@ -114,7 +100,8 @@ public class Method extends MarkdownElement implements Comparable<Method> {
 
             StringBuilder builder = new StringBuilder();
 
-            builder.append("    - **Parameters**");
+            builder.append("    - _Parameters_");
+            builder.append(newLine(false));
 
 
             for (ParamTag p : par) {
@@ -145,7 +132,7 @@ public class Method extends MarkdownElement implements Comparable<Method> {
 
         Tag ret = returnTags[0];
         StringBuilder builder = new StringBuilder();
-        builder.append("    - **Returns**");
+        builder.append("    - _Returns_");
         builder.append(newLine());
         builder.append("    ");
         builder.append(ret.text());
@@ -162,7 +149,8 @@ public class Method extends MarkdownElement implements Comparable<Method> {
         }
 
         StringBuilder builder = new StringBuilder();
-        builder.append("    - **Throws**");
+        builder.append("    - _Throws_");
+        builder.append(newLine(false));
 
         for (ThrowsTag p : tags) {
             // Parameter name
@@ -223,6 +211,8 @@ public class Method extends MarkdownElement implements Comparable<Method> {
             builder.append(newLine());
             builder.append(thr);
         }
+
+        builder.append(newLine());
 
         return builder.toString();
     }

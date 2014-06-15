@@ -152,7 +152,7 @@ public abstract class MarkdownDoclet extends Doclet{
     }
 
     /**
-     * Generates and writes 
+     * Generates and writes
      * @param c
      * @param targetDir The target directory where to write
      * @throws FileNotFoundException
