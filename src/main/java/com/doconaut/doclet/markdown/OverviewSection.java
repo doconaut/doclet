@@ -33,6 +33,8 @@ public class OverviewSection extends Section {
 
         str.append(getSubSection("Implemented Interfaces"));
 
+        str.append(newLine());
+
         for (int i = 0; i< interfaces.length; i++){
             ClassDoc interf = interfaces[i];
             str.append(linkToClass(interf, false));
@@ -53,6 +55,8 @@ public class OverviewSection extends Section {
 
         StringBuilder builder = new StringBuilder(getSubSection("Definition"));
 
+        builder.append(newLine());
+
         builder.append(clazz.modifiers());
 
         if (clazz.isClass()) {
@@ -67,9 +71,9 @@ public class OverviewSection extends Section {
             builder.append(" enum");
         }
 
-        builder.append("_");
+        builder.append(" _");
         builder.append(clazz.name());
-        builder.append("_");
+        builder.append("_ ");
 
         builder.append(newLine());
         builder.append("in package _");
@@ -85,6 +89,7 @@ public class OverviewSection extends Section {
         StringBuilder str = new StringBuilder();
 
         str.append(getSubSection("Inheritance"));
+        str.append(newLine());
 
         ClassDoc superClass = clazz.superclass();
         String intention = "&nbsp;&nbsp;&nbsp;";
@@ -131,6 +136,10 @@ public class OverviewSection extends Section {
 
         // Write the description
         builder.append(getJavaDocResolved(clazz.commentText()));
+        builder.append(newLine());
+        builder.append("foo");
+        builder.append(newLine());
+
 
         // Definition
         builder.append(newLine());

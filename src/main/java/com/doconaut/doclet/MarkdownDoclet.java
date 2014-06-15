@@ -8,6 +8,7 @@ import com.doconaut.doclet.markdown.method.MethodSection;
 import com.sun.javadoc.*;
 
 import java.io.*;
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,10 +48,15 @@ public abstract class MarkdownDoclet extends Doclet{
 
     public static boolean start(RootDoc rootDoc){
 
+        String targetPath = "/Users/hannes/jekyll/hmfaysal-omega-theme/docs/";
+        File targetFolder = new File(targetPath);
+        deleteFolder(targetFolder);
+        targetFolder.mkdirs();
+
         try {
             ClassDoc[] classes = rootDoc.classes();
             for (ClassDoc c : classes) {
-                writeClass(c);
+                writeClass(c, targetPath);
             }
 
 
@@ -130,20 +136,38 @@ public abstract class MarkdownDoclet extends Doclet{
         }
     }
 
+
+    public static void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if(files!=null) { //some JVMs return null for empty dirs
+            for(File f: files) {
+                if(f.isDirectory()) {
+                    deleteFolder(f);
+                } else {
+                    f.delete();
+                }
+            }
+        }
+        folder.delete();
+    }
+
     /**
-     * Writes the
+     * Generates and writes 
      * @param c
+     * @param targetDir The target directory where to write
      * @throws FileNotFoundException
      * @throws UnsupportedEncodingException
      */
-    private static void writeClass(ClassDoc c) throws IOException {
+    private static void writeClass(ClassDoc c, String targetDir) throws IOException {
 
         String name = c.name();
         String permalink = c.qualifiedName();
 
 
+
+
         OutputStream out = System.out;
-        PrintWriter builder = new PrintWriter("/Users/hannes/jekyll/hmfaysal-omega-theme/docs/"+permalink+".md");
+        PrintWriter builder = new PrintWriter(targetDir+permalink+".md");
 
         // Template things, if there is anything
         String template = null;
