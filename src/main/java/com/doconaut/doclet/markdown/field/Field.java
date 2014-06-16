@@ -20,8 +20,8 @@ public class Field extends MarkdownElement implements Comparable<Field>{
 
         StringBuilder builder = new StringBuilder();
 
-        builder.append("* ").append(field.modifiers()).append(" ")
-                .append(field.type().simpleTypeName()).append(" **_").append(field.name()).append("_**");
+        builder.append("* ").append(field.modifiers()).append(" **_")
+                .append(field.type().simpleTypeName()).append(" ").append(field.name()).append("_**");
 
         if (!StringUtils.isEmpty(field.commentText())) {
             builder.append(newLine());

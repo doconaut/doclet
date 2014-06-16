@@ -18,7 +18,7 @@ public class Method extends MarkdownElement implements Comparable<Method> {
 
     protected String getParametersForHeader(){
 
-        String signature = method.flatSignature();
+        String signature = method.signature();
 
         Parameter[] par = method.parameters();
         for (Parameter p : par){
@@ -47,7 +47,8 @@ public class Method extends MarkdownElement implements Comparable<Method> {
 
         builder.append("* ");
 
-        builder.append(method.modifiers()).append(" ");
+        builder.append(method.modifiers()).append(" **_");
+
 
         // The return type
         Type returnType = getReturnType();
@@ -59,7 +60,6 @@ public class Method extends MarkdownElement implements Comparable<Method> {
             }
         }
 
-        builder.append("**_");
         builder.append(method.name());
         builder.append("_** ");
         builder.append(getParametersForHeader());
@@ -198,6 +198,13 @@ public class Method extends MarkdownElement implements Comparable<Method> {
 
     @Override
     public int compareTo(Method o) {
-        return this.method.name().compareTo(o.method.name());
+
+        int c = this.method.name().compareTo(o.method.name());
+
+        if (c != 0){
+            return  c;
+        }
+
+        return this.method.parameters().length - o.method.parameters().length;
     }
 }

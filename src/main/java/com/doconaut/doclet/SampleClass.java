@@ -2,6 +2,7 @@ package com.doconaut.doclet;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Sample class with simple description
@@ -14,7 +15,7 @@ public class SampleClass<V> extends SampleSuperClass implements Serializable, Cl
     /**
      * Boolean sample
      */
-    public static final boolean DISPLY_BOOLEAN = true;
+    public static final boolean DISPLAY_BOOLEAN = true;
 
     /**
      * The constant for storing usernames
@@ -75,5 +76,12 @@ public class SampleClass<V> extends SampleSuperClass implements Serializable, Cl
 
     }
 
+    /**
+     * Casts this object to a {@link com.doconaut.doclet.SampleSuperClass}
+     * @return The casted object
+     */
+    public SampleSuperClass asSuperClass(List<SampleClass> param){
+        return this;
+    }
 
 }
