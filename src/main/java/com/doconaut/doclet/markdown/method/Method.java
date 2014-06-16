@@ -16,47 +16,6 @@ public class Method extends MarkdownElement implements Comparable<Method> {
         this.method = method;
     }
 
-
-    /**
-     * Get the modifiers of a markdown
-     *
-     * @return
-     */
-    private String getMethodModifiers(){
-
-        StringBuilder modi = new StringBuilder();
-        if (method.isPublic()){
-            modi.append("public ");
-        }
-
-        if (method.isProtected()){
-            modi.append("protected ");
-        }
-
-        if (method.isPrivate()){
-            modi.append("private ");
-        }
-
-        if (method.isStatic()){
-            modi.append("static ");
-        }
-
-        if (method.isFinal()){
-            modi.append("final ");
-        }
-
-        if (method.isNative()){
-            modi.append("native ");
-        }
-
-        if(method.isSynchronized()){
-            modi.append("synchronized ");
-        }
-
-        return modi.toString().trim();
-
-    }
-
     protected String getParametersForHeader(){
 
         String signature = method.flatSignature();
@@ -65,6 +24,7 @@ public class Method extends MarkdownElement implements Comparable<Method> {
         for (Parameter p : par){
 
             if (!p.type().isPrimitive()){
+
                 signature = signature.replace(p.name(), linkToClass(p.type().asClassDoc(), false));
             }
 
@@ -73,14 +33,33 @@ public class Method extends MarkdownElement implements Comparable<Method> {
         return signature;
     }
 
+    protected Type getReturnType(){
+        if (method instanceof MethodDoc){
+            return ((MethodDoc) method).returnType();
+        }
+
+        return null;
+    }
+
 
     protected String getHeader(){
         StringBuilder builder = new StringBuilder();
 
         builder.append("* ");
 
-        builder.append(getMethodModifiers());
-        builder.append(" **_");
+        builder.append(method.modifiers()).append(" ");
+
+        // The return type
+        Type returnType = getReturnType();
+        if (returnType != null){
+            if(returnType.isPrimitive()){
+                builder.append(returnType.simpleTypeName()).append(" ");
+            } else {
+                builder.append(linkToClass(returnType.asClassDoc(), false)).append(" ");
+            }
+        }
+
+        builder.append("**_");
         builder.append(method.name());
         builder.append("_** ");
         builder.append(getParametersForHeader());
@@ -180,7 +159,7 @@ public class Method extends MarkdownElement implements Comparable<Method> {
 
         // write the description
         String description =getJavaDocResolved(method.commentText());
-        if (StringUtils.isEmpty(description)) {
+        if (!StringUtils.isEmpty(description)) {
 
             builder.append(newLine());
             builder.append(description);

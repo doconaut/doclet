@@ -1,5 +1,6 @@
 package com.doconaut.doclet;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 /**
@@ -23,11 +24,9 @@ public class SampleClass<V> extends SampleSuperClass implements Serializable, Cl
     public int foo;
 
     /**
-     * The empty constructor
+     * Used to store aaa letters
      */
-    public SampleClass(){
-
-    }
+    public String aaa;
 
     /**
      * Creates a new SampleClass with an initial value
@@ -38,6 +37,36 @@ public class SampleClass<V> extends SampleSuperClass implements Serializable, Cl
     }
 
 
+    /**
+     * The empty constructor
+     */
+    public SampleClass(){
+
+    }
+
+
+    /**
+     * A method with some parameters and exceptions. Just to demonstrate the use of doconaut.
+     * Just do a simple method call like this: <code>this.getFoo();</code>
+     *
+     *
+     * @param f the integer paramter
+     * @param a The float Parameter
+     * @param sup The sup
+     * @param utils The utils that are <b>very useful</b>
+     * @return Always returns null
+     * @throws IOException Thrown if not readable or writeable
+     * @throws IllegalArgumentException Thrown if utils is null bla bla bla bal qweqweib ak uwbaroqbw kqweuqbwoqbws ,qiowboqwneoiqw qw oebsafoniasnd qwt oqbetwoinqtow obqwneionqwoeb boabsd obqwneiqwneo ioqnweionqwe
+     */
+    public String getFoo(int f, float a, SampleSuperClass sup, StringUtils utils) throws IOException, IllegalArgumentException{
+        return null;
+    }
+
+
+    /**
+     * A simple foo method. Does nothing spectacular. Just a simple method
+     * @return Always returns zero
+     */
     private int fooMethod(){
         return 0;
     }
@@ -45,5 +74,6 @@ public class SampleClass<V> extends SampleSuperClass implements Serializable, Cl
     public void doNothing(){
 
     }
+
 
 }

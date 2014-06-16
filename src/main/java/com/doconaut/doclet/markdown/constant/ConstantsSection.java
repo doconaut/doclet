@@ -38,6 +38,7 @@ public class ConstantsSection extends Section {
 
         for (ConstantField f : constants){
             builder.append(f.asMarkdown());
+            builder.append(newLine());
         }
 
         return builder.toString();

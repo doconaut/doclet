@@ -1,6 +1,7 @@
 package com.doconaut.doclet.markdown.constructor;
 
 import com.doconaut.doclet.markdown.Section;
+import com.doconaut.doclet.markdown.method.MethodsComparator;
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.ConstructorDoc;
 
@@ -25,7 +26,7 @@ public class ConstructorSection extends Section {
             constructors[i++] = new Constructor(co);
         }
 
-        Arrays.sort(constructors);
+        Arrays.sort(constructors, new MethodsComparator());
 
     }
 

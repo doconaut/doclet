@@ -23,7 +23,7 @@ public class MethodSection extends Section {
         }
 
 
-        Arrays.sort(methods);
+        Arrays.sort(methods, new MethodsComparator());
 
     }
 

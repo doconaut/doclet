@@ -40,6 +40,7 @@ public class FieldSection extends Section {
 
         for (Field f : fields){
             builder.append(f.asMarkdown());
+            builder.append(newLine());
         }
 
         return builder.toString();

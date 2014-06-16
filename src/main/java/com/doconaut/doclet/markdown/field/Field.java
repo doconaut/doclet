@@ -1,5 +1,6 @@
 package com.doconaut.doclet.markdown.field;
 
+import com.doconaut.doclet.StringUtils;
 import com.doconaut.doclet.markdown.MarkdownElement;
 import com.sun.javadoc.FieldDoc;
 
@@ -19,9 +20,13 @@ public class Field extends MarkdownElement implements Comparable<Field>{
 
         StringBuilder builder = new StringBuilder();
 
-        builder.append("* **").append(field.type().simpleTypeName()).append(" _").append(field.name()).append("_**");
-        builder.append(newLine());
-        builder.append(getJavaDocResolved(field.commentText()));
+        builder.append("* ").append(field.modifiers()).append(" ")
+                .append(field.type().simpleTypeName()).append(" **_").append(field.name()).append("_**");
+
+        if (!StringUtils.isEmpty(field.commentText())) {
+            builder.append(newLine());
+            builder.append(getJavaDocResolved(field.commentText()));
+        }
 
         return builder.toString();
     }

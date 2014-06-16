@@ -16,8 +16,8 @@ public class ConstantField extends Field {
     public String asMarkdown() {
         StringBuilder builder = new StringBuilder(super.asMarkdown());
 
-        builder.append("    - _Constant Value_");
         builder.append(newLine());
+        builder.append("    - _Constant Value:_ ");
         builder.append(field.constantValueExpression());
 
         return builder.toString();
